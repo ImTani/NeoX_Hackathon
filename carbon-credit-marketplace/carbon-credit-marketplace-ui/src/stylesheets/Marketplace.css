@@ -1,0 +1,146 @@
+/* Marketplace.css */
+
+:root {
+    --primary-color: #007bff;
+    --secondary-color: #0056b3;
+    --background-color: #f0f4f8;
+    --card-background: white;
+    --error-color: #d9534f;
+    --text-color: #333;
+    --border-radius: 10px;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+}
+
+/* General styles */
+body {
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    background: var(--background-color);
+    line-height: 1.6;
+}
+
+.marketplace {
+    padding: 30px;
+    max-width: 800px;
+    margin: 40px auto;
+    border-radius: var(--border-radius);
+    box-shadow: 0 8px 20px var(--shadow-color);
+    background: linear-gradient(135deg, #e0f7fa 30%, #ffffff 70%);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.marketplace:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px var(--shadow-color);
+}
+
+h1 {
+    text-align: center;
+    color: var(--text-color);
+    margin-bottom: 30px;
+    font-size: 2.5rem;
+    font-weight: 600;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.error {
+    color: var(--error-color);
+    text-align: center;
+    margin-bottom: 30px;
+    font-weight: bold;
+}
+
+.loading {
+    text-align: center;
+    margin: 30px 0;
+    animation: fadeIn 1s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+button {
+    cursor: pointer;
+    padding: 12px 18px;
+    border: none;
+    border-radius: var(--border-radius);
+    margin: 5px;
+    background-color: var(--primary-color);
+    color: white;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+button:hover {
+    background-color: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.credits-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.credit-item {
+    margin: 20px 0;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    background-color: var(--card-background);
+    box-shadow: 0 4px 10px var(--shadow-color);
+    transition: box-shadow 0.3s ease;
+}
+
+.credit-item:hover {
+    box-shadow: 0 6px 15px var(--shadow-color);
+}
+
+.amount-input {
+    margin-right: 12px;
+    width: 70px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    transition: border-color 0.3s ease;
+}
+
+.amount-input:focus {
+    border-color: var(--primary-color);
+    outline: none;
+}
+
+h2 {
+    margin-top: 50px;
+    color: var(--text-color);
+    font-size: 1.8rem;
+    text-align: center;
+    font-weight: 600;
+}
+
+.list-input {
+    margin-bottom: 12px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    width: calc(50% - 20px);
+    transition: border-color 0.3s ease;
+}
+
+.list-input:focus {
+    border-color: var(--primary-color);
+    outline: none;
+}
+
+.list-input + .list-input {
+    margin-left: 20px;
+}

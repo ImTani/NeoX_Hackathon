@@ -7,41 +7,120 @@ contract CarbonMarketplace {
     CarbonCreditToken public carbonToken;
     address public admin;
 
-    struct Listing {
+    struct Order {
         uint256 amount;
-        uint256 pricePerToken;
-        address seller;
+        uint256 price;
+        address trader;
+        bool isBuyOrder;
     }
 
-    mapping(uint256 => Listing) public listings;
-    uint256 public nextListingId;
+    struct UserReputation {
+        uint256 totalTransactions;
+        uint256 successfulTransactions;
+    }
 
-    event Listed(uint256 listingId, address seller, uint256 amount, uint256 pricePerToken);
-    event Bought(uint256 listingId, address buyer, uint256 amount);
+    mapping(uint256 => Order) public orders;
+    uint256 public nextOrderId;
+    mapping(address => UserReputation) public userReputations;
+
+    event OrderCreated(uint256 orderId, address trader, uint256 amount, uint256 price, bool isBuyOrder);
+    event OrderFulfilled(uint256 orderId, address buyer, address seller, uint256 amount, uint256 price);
+    event OrderCancelled(uint256 orderId);
 
     constructor(address _carbonToken) {
         carbonToken = CarbonCreditToken(_carbonToken);
         admin = msg.sender;
     }
 
-    function listTokens(uint256 amount, uint256 pricePerToken) external {
-        require(carbonToken.balanceOf(msg.sender) >= amount, "Insufficient balance to list");
+    function createLimitOrder(uint256 amount, uint256 price, bool isBuyOrder) external payable {
+        if (isBuyOrder) {
+            require(msg.value >= amount * price, "Insufficient ETH for buy order");
+        } else {
+            require(carbonToken.balanceOf(msg.sender) >= amount, "Insufficient token balance");
+            require(carbonToken.allowance(msg.sender, address(this)) >= amount, "Insufficient token allowance");
+        }
 
-        // Create a new listing
-        listings[nextListingId] = Listing(amount, pricePerToken, msg.sender);
-        emit Listed(nextListingId, msg.sender, amount, pricePerToken);
-        nextListingId++;
+        orders[nextOrderId] = Order(amount, price, msg.sender, isBuyOrder);
+        emit OrderCreated(nextOrderId, msg.sender, amount, price, isBuyOrder);
+        nextOrderId++;
+
+        tryMatchOrder(nextOrderId - 1);
     }
 
-    function buyTokens(uint256 listingId) external payable {
-        Listing memory listing = listings[listingId];
-        require(msg.value == listing.amount * listing.pricePerToken, "Incorrect ETH amount sent");
+    function cancelOrder(uint256 orderId) external {
+        Order storage order = orders[orderId];
+        require(order.trader == msg.sender, "Not the order creator");
+        require(order.amount > 0, "Order already fulfilled or cancelled");
 
-        // Transfer tokens from seller to buyer
-        carbonToken.transferFrom(listing.seller, msg.sender, listing.amount);
-        payable(listing.seller).transfer(msg.value); // Pay the seller
+        if (order.isBuyOrder) {
+            payable(msg.sender).transfer(order.amount * order.price);
+        }
 
-        delete listings[listingId]; // Remove the listing
-        emit Bought(listingId, msg.sender, listing.amount);
+        delete orders[orderId];
+        emit OrderCancelled(orderId);
+    }
+
+    function tryMatchOrder(uint256 orderId) internal {
+        Order storage currentOrder = orders[orderId];
+        
+        for (uint256 i = 0; i < nextOrderId; i++) {
+            if (i == orderId) continue;
+            
+            Order storage matchingOrder = orders[i];
+            if (matchingOrder.amount == 0) continue;
+            if (currentOrder.isBuyOrder == matchingOrder.isBuyOrder) continue;
+            
+            if ((currentOrder.isBuyOrder && currentOrder.price >= matchingOrder.price) ||
+                (!currentOrder.isBuyOrder && currentOrder.price <= matchingOrder.price)) {
+                
+                uint256 matchAmount = (currentOrder.amount < matchingOrder.amount) ? currentOrder.amount : matchingOrder.amount;
+                uint256 matchPrice = matchingOrder.price;
+
+                if (currentOrder.isBuyOrder) {
+                    executeTransaction(currentOrder.trader, matchingOrder.trader, matchAmount, matchPrice);
+                } else {
+                    executeTransaction(matchingOrder.trader, currentOrder.trader, matchAmount, matchPrice);
+                }
+
+                currentOrder.amount -= matchAmount;
+                matchingOrder.amount -= matchAmount;
+
+                if (matchingOrder.amount == 0) {
+                    delete orders[i];
+                }
+
+                if (currentOrder.amount == 0) {
+                    delete orders[orderId];
+                    break;
+                }
+            }
+        }
+    }
+
+    function executeTransaction(address buyer, address seller, uint256 amount, uint256 price) internal {
+        uint256 totalPrice = amount * price;
+
+        carbonToken.transferFrom(seller, buyer, amount);
+        payable(seller).transfer(totalPrice);
+
+        updateReputation(buyer);
+        updateReputation(seller);
+
+        emit OrderFulfilled(nextOrderId, buyer, seller, amount, price);
+    }
+
+    function updateReputation(address user) internal {
+        userReputations[user].totalTransactions++;
+        userReputations[user].successfulTransactions++;
+    }
+
+    function getOrderDetails(uint256 orderId) external view returns (uint256, uint256, address, bool) {
+        Order storage order = orders[orderId];
+        return (order.amount, order.price, order.trader, order.isBuyOrder);
+    }
+
+    function getUserReputation(address user) external view returns (uint256, uint256) {
+        UserReputation storage reputation = userReputations[user];
+        return (reputation.totalTransactions, reputation.successfulTransactions);
     }
 }

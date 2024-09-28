@@ -267,8 +267,8 @@
       ]
     },
     "C:\\Users\\tanis\\OneDrive\\Desktop\\My_Programs\\Web3\\NeoX_Hackathon\\carbon-credit-marketplace\\contracts\\CarbonMarketplace.sol": {
-      "lastModificationDate": 1727434990304,
-      "contentHash": "398399af00f848516e809b53c0ac589d",
+      "lastModificationDate": 1727540142239,
+      "contentHash": "dde5f10f05d87f2348b5ec470afd223b",
       "sourceName": "contracts/CarbonMarketplace.sol",
       "solcConfig": {
         "version": "0.8.27",

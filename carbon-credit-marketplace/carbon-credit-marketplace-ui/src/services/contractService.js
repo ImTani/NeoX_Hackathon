@@ -1,41 +1,73 @@
 // src/services/contractService.js
-import CarbonCreditMarketplace from '../artifacts/CarbonMarketplace.json'; // Adjust the path as necessary
+import CarbonCreditMarketplace from '../artifacts/CarbonMarketplace.json';
+import CarbonCreditToken from '../artifacts/CarbonCreditToken.json';
+import { ethers } from 'ethers';
 
-const { ethers } = require("ethers");
-const marketplaceAddress = '0x676066a716C741432dD52a789c6F9DC44d7C17E4'; // Replace with your deployed contract address
+const marketplaceAddress = '0xfD61A577e26059606DcB087bEb952500672d7DB8'; // Replace with your deployed contract address
 
 export const getMarketplaceInstance = async () => {
-    // Create a provider from the window's Ethereum object
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    
-    // Request account access
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
     await provider.send("eth_requestAccounts", []);
-    
-    // Get the signer which allows you to send transactions
     const signer = await provider.getSigner();
-    
-    // Create the marketplace contract instance
-    const marketplaceContract = new ethers.Contract(marketplaceAddress, CarbonCreditMarketplace.abi, signer);
-    
-    return marketplaceContract;
+  
+    return new ethers.Contract(marketplaceAddress, CarbonCreditMarketplace.abi, signer);
+};
+
+export const getTokenInstance = async () => {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    const signer = await provider.getSigner();
+  
+    const tokenAddress = await (await getMarketplaceInstance()).carbonToken();
+    return new ethers.Contract(tokenAddress, CarbonCreditToken.abi, signer);
 };
 
 export const fetchAvailableCredits = async () => {
     const contract = await getMarketplaceInstance();
-    const nextListingId = await contract.nextListingId(); // Get the next listing ID
+    const nextOrderId = await contract.nextOrderId();
     const creditsList = [];
 
-    for (let i = 0; i < nextListingId; i++) {
-        const listing = await contract.listings(i); // Fetch listing by ID
-        if (listing.amount > 0) {
+    for (let i = 0; i < nextOrderId; i++) {
+        const [amount, price, trader, isBuyOrder] = await contract.getOrderDetails(i);
+        if (amount.gt(0) && !isBuyOrder) {
             creditsList.push({
                 id: i,
-                amount: listing.amount.toString(),
-                pricePerToken: ethers.utils.formatEther(listing.pricePerToken), // Convert price from wei to ether
-                seller: listing.seller
+                amount: amount.toString(),
+                pricePerToken: ethers.utils.formatEther(price),
+                seller: trader
             });
         }
     }
 
     return creditsList;
+};
+
+
+export const createLimitOrder = async (amount, price, isBuyOrder) => {
+    console.log(`Creating limit order: amount=${amount}, price=${price}, isBuyOrder=${isBuyOrder}`);
+    const contract = await getMarketplaceInstance();
+    const parsedAmount = ethers.utils.parseUnits(amount, 18);
+    const parsedPrice = ethers.utils.parseEther(price);
+
+    if (isBuyOrder) {
+        const totalCost = parsedAmount.mul(parsedPrice);
+        console.log(`Total cost: ${ethers.utils.formatEther(totalCost)}`);
+        console.log(`Calling createLimitOrder with totalCost=${totalCost}`);
+        return await contract.createLimitOrder(parsedAmount, parsedPrice, true, { value: totalCost });
+    } else {
+        const tokenContract = await getTokenInstance();
+        console.log(`Approving token contract: ${tokenContract.address}`);
+        await tokenContract.approve(contract.address, parsedAmount);
+        return await contract.createLimitOrder(parsedAmount, parsedPrice, false);
+    }
+};
+
+export const cancelOrder = async (orderId) => {
+    const contract = await getMarketplaceInstance();
+    return await contract.cancelOrder(orderId);
+};
+
+export const getUserReputation = async (address) => {
+    const contract = await getMarketplaceInstance();
+    return await contract.getUserReputation(address);
 };
