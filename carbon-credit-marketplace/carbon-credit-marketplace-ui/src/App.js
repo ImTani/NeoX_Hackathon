@@ -1,11 +1,13 @@
 // src/App.js
 import React from 'react';
-import Marketplace from './components/Marketplace';
+import LandingPage from './components/LandingPage';
+import { Toaster } from "@/components/ui/toaster"
 
 function App() {
     return (
         <div className="App">
-            <Marketplace />
+            <LandingPage />
+            <Toaster />
         </div>
     );
 }
