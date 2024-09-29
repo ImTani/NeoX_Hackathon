@@ -48,15 +48,9 @@ The Carbon Credit Marketplace is a decentralized application (DApp) built on the
 ## Demo
 
 Check out our demo video to see the Carbon Credit Marketplace in action:
-[Demo Video Link](https://www.youtube.com/watch?v=demo-video-id)
+[Demo Video Link](https://youtu.be/xGx22Btn8-w)
 
-## Deployment Links
-
-- **Production**: [https://carbon-credit-marketplace.com](https://carbon-credit-marketplace.com)
-- **Staging**: [https://staging.carbon-credit-marketplace.com](https://staging.carbon-credit-marketplace.com)
-- **TestNet Deployment**: [https://testnet.carbon-credit-marketplace.com](https://testnet.carbon-credit-marketplace.com)
-
-## Setup and Installation
+## Setup d Installation
 
 1. Clone the repository:
    ```
