@@ -1,23 +1,61 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { getMarketplaceInstance, getTokenInstance } from '../services/contractService';
 import { ethers } from 'ethers';
+import { useToast } from '@/components/ui/use-toast';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Loader2 } from "lucide-react";
 
 const Marketplace = () => {
     const [orders, setOrders] = useState({ buy: [], sell: [] });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [account, setAccount] = useState('');
+    const [isAdmin, setIsAdmin] = useState(false);
     const [userReputation, setUserReputation] = useState({ total: 0, successful: 0 });
     const [amountToList, setAmountToList] = useState('');
     const [pricePerToken, setPricePerToken] = useState('');
     const [orderType, setOrderType] = useState('buy');
-    const [mintAmount, setMintAmount] = useState(''); // State for minting
+    const [mintAmount, setMintAmount] = useState('');
+    const [refreshKey, setRefreshKey] = useState(0);
+    const [tokenBalance, setTokenBalance] = useState('0');
+    const { toast } = useToast();
 
     const loadUserReputation = useCallback(async () => {
         if (account) {
             const contract = await getMarketplaceInstance();
             const [total, successful] = await contract.getUserReputation(account);
             setUserReputation({ total: total.toNumber(), successful: successful.toNumber() });
+        }
+    }, [account]);
+
+    const checkAdminStatus = useCallback(async () => {
+        if (account) {
+            try {
+                const tokenContract = await getTokenInstance();
+                const adminRole = await tokenContract.DEFAULT_ADMIN_ROLE();
+                const isAdminUser = await tokenContract.hasRole(adminRole, account);
+                setIsAdmin(isAdminUser);
+            } catch (error) {
+                console.error("Error checking admin status:", error);
+                setIsAdmin(false);
+            }
+        }
+    }, [account]);
+
+    const loadTokenBalance = useCallback(async () => {
+        if (account) {
+            try {
+                const tokenContract = await getTokenInstance();
+                const balance = await tokenContract.balanceOf(account);
+                setTokenBalance(ethers.utils.formatUnits(balance, 18));
+            } catch (error) {
+                console.error("Error loading token balance:", error);
+            }
         }
     }, [account]);
 
@@ -30,12 +68,20 @@ const Marketplace = () => {
             }
             await loadOrderBook();
             await loadUserReputation();
+            await checkAdminStatus();
+            await loadTokenBalance();
         } catch (error) {
             setError(error.message);
         } finally {
             setLoading(false);
         }
-    }, [loadUserReputation]);
+    }, [loadUserReputation, checkAdminStatus, loadTokenBalance]);
+
+    useEffect(() => {
+        if (account) {
+            loadMarketData();
+        }
+    }, [account, refreshKey, loadMarketData]);
 
     const loadOrderBook = async () => {
         const contract = await getMarketplaceInstance();
@@ -67,7 +113,11 @@ const Marketplace = () => {
         const { ethereum } = window;
 
         if (!ethereum) {
-            alert('Please install MetaMask!');
+            toast({
+                title: "MetaMask Not Found",
+                description: "Please install MetaMask to use this application.",
+                variant: "destructive",
+            });
             return;
         }
 
@@ -76,15 +126,23 @@ const Marketplace = () => {
         try {
             const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
             setAccount(accounts[0]);
+            toast({
+                title: "Wallet Connected",
+                description: "Your wallet has been successfully connected.",
+            });
         } catch (error) {
             setError('Failed to connect to wallet. Please try again.');
+            toast({
+                title: "Connection Failed",
+                description: "Failed to connect to wallet. Please try again.",
+                variant: "destructive",
+            });
         } finally {
             setLoading(false);
         }
     };
 
     const handleCreateOrder = async () => {
-        console.log('handleCreateOrder', amountToList, pricePerToken, orderType);
         try {
             const contract = await getMarketplaceInstance();
             const amount = ethers.utils.parseUnits(amountToList, 18);
@@ -92,26 +150,29 @@ const Marketplace = () => {
 
             if (orderType === 'buy') {
                 const totalCost = amount.mul(price);
-                console.log('Total cost=', ethers.utils.formatEther(totalCost));
-                console.log('Calling createLimitOrder');
                 const tx = await contract.createLimitOrder(amount, price, true, { value: totalCost });
                 await tx.wait();
             } else {
                 const tokenContract = await getTokenInstance();
-                console.log('Approving token contract=', tokenContract.address);
                 await tokenContract.approve(contract.address, amount);
-                console.log('Calling createLimitOrder');
                 const tx = await contract.createLimitOrder(amount, price, false);
                 await tx.wait();
             }
 
-            alert('Order created successfully!');
-            loadMarketData();
+            toast({
+                title: "Order Created",
+                description: "Your order has been created successfully!",
+            });
+            refreshMarketplace();
             setAmountToList('');
             setPricePerToken('');
         } catch (error) {
             console.error('Failed to create order:', error);
-            alert('Failed to create order. Please try again.');
+            toast({
+                title: "Order Creation Failed",
+                description: "Failed to create order. Please try again.",
+                variant: "destructive",
+            });
         }
     };
 
@@ -120,10 +181,17 @@ const Marketplace = () => {
             const contract = await getMarketplaceInstance();
             const tx = await contract.cancelOrder(orderId);
             await tx.wait();
-            alert('Order cancelled successfully!');
-            loadMarketData();
+            toast({
+                title: "Order Cancelled",
+                description: "Your order has been cancelled successfully!",
+            });
+            refreshMarketplace();
         } catch (error) {
-            alert('Failed to cancel order. Please try again.');
+            toast({
+                title: "Cancellation Failed",
+                description: "Failed to cancel order. Please try again.",
+                variant: "destructive",
+            });
             console.error(error);
         }
     };
@@ -134,10 +202,18 @@ const Marketplace = () => {
             const amount = ethers.utils.parseUnits(mintAmount, 18);
             const tx = await tokenContract.mint(account, amount);
             await tx.wait();
-            alert(`${mintAmount} tokens minted successfully!`);
-            setMintAmount(''); // Reset after minting
+            toast({
+                title: "Tokens Minted",
+                description: `${mintAmount} tokens have been minted successfully!`,
+            });
+            setMintAmount('');
+            refreshMarketplace();
         } catch (error) {
-            alert('Failed to mint tokens. Please try again.');
+            toast({
+                title: "Minting Failed",
+                description: "Failed to mint tokens. Please try again.",
+                variant: "destructive",
+            });
             console.error(error);
         }
     };
@@ -145,135 +221,192 @@ const Marketplace = () => {
     const disconnectWallet = () => {
         setAccount('');
         setUserReputation({ total: 0, successful: 0 });
-        alert('Wallet disconnected.');
+        setIsAdmin(false);
+        setTokenBalance('0');
+        toast({
+            title: "Wallet Disconnected",
+            description: "Your wallet has been disconnected.",
+        });
+    };
+
+    const refreshMarketplace = () => {
+        setRefreshKey(oldKey => oldKey + 1);
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
-            <div className="max-w-6xl w-full p-8 bg-white shadow-md rounded-lg">
-                <h1 className="text-3xl font-bold mb-6 text-gray-800">Carbon Credit Marketplace</h1>
-                
-                {error && <div className="text-red-500 mb-4">{error}</div>}
-                <button
-                    className="mb-4 px-6 py-2 bg-gray-800 text-white rounded-lg transition duration-200 hover:bg-gray-700"
-                    onClick={connectWallet}
-                >
-                    {account ? `Connected: ${account.slice(0, 6)}...${account.slice(-4)}` : 'Connect Wallet'}
-                </button>
-                {account && (
-                    <>
-                        <button
-                            className="mb-4 ml-4 px-6 py-2 bg-red-600 text-white rounded-lg transition duration-200 hover:bg-red-700"
-                            onClick={disconnectWallet}
+        <div className="min-h-screen bg-gradient-to-b from-gray-100 to-gray-200 p-8">
+            <Card className="max-w-6xl mx-auto">
+                <CardHeader>
+                    <CardTitle className="text-3xl font-bold text-gray-800">Carbon Credit Marketplace</CardTitle>
+                    <CardDescription>Trade carbon credits securely and efficiently</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {error && (
+                        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+                            <p>{error}</p>
+                        </div>
+                    )}
+                    
+                    <div className="flex justify-between items-center mb-6">
+                        <Button
+                            variant={account ? "outline" : "default"}
+                            onClick={account ? disconnectWallet : connectWallet}
+                            className="w-48"
                         >
-                            Logout
-                        </button>
-                        <div className="mb-4">
-                            Reputation: {userReputation.successful} / {userReputation.total} successful transactions
-                        </div>
-                    </>
-                )}
-                {loading ? (
-                    <div className="text-gray-500">Loading marketplace data...</div>
-                ) : (
-                    <div className="grid grid-cols-2 gap-8">
-                        <div>
-                            <h2 className="text-2xl font-semibold mb-4">Order Book</h2>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <h3 className="text-lg font-medium mb-2">Buy Orders</h3>
-                                    <ul className="space-y-2">
-                                        {orders.buy.map((order) => (
-                                            <li key={order.id} className="p-2 bg-green-100 rounded">
-                                                {order.amount} CCT @ {order.price} ETH
-                                                {order.trader === account && (
-                                                    <button
-                                                        className="ml-2 text-sm text-red-600"
-                                                        onClick={() => handleCancelOrder(order.id)}
-                                                    >
-                                                        Cancel
-                                                    </button>
-                                                )}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-medium mb-2">Sell Orders</h3>
-                                    <ul className="space-y-2">
-                                        {orders.sell.map((order) => (
-                                            <li key={order.id} className="p-2 bg-red-100 rounded">
-                                                {order.amount} CCT @ {order.price} ETH
-                                                {order.trader === account && (
-                                                    <button
-                                                        className="ml-2 text-sm text-red-600"
-                                                        onClick={() => handleCancelOrder(order.id)}
-                                                    >
-                                                        Cancel
-                                                    </button>
-                                                )}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
+                            {account ? `Disconnect Wallet` : 'Connect Wallet'}
+                        </Button>
+                        {account && (
+                            <div className="text-right">
+                                <p className="text-sm text-gray-600">Connected: {account.slice(0, 6)}...{account.slice(-4)}</p>
+                                <p className="text-sm text-gray-600">Balance: {tokenBalance} CCT</p>
                             </div>
-                        </div>
-                        <div>
-                            <h2 className="text-2xl font-semibold mb-4">Create Order</h2>
-                            <div className="space-y-4">
-                                <select
-                                    className="w-full p-2 border border-gray-300 rounded"
-                                    value={orderType}
-                                    onChange={(e) => setOrderType(e.target.value)}
-                                >
-                                    <option value="buy">Buy</option>
-                                    <option value="sell">Sell</option>
-                                </select>
-                                <input
-                                    type="number"
-                                    placeholder="Amount of CCT"
-                                    value={amountToList}
-                                    onChange={(e) => setAmountToList(e.target.value)}
-                                    className="w-full p-2 border border-gray-300 rounded"
-                                />
-                                <input
-                                    type="number"
-                                    placeholder="Price per token (ETH)"
-                                    value={pricePerToken}
-                                    onChange={(e) => setPricePerToken(e.target.value)}
-                                    className="w-full p-2 border border-gray-300 rounded"
-                                />
-                                <button
-                                    className="w-full px-6 py-2 bg-blue-600 text-white rounded-lg transition duration-200 hover:bg-blue-700"
-                                    onClick={handleCreateOrder}
-                                >
-                                    Create {orderType} Order
-                                </button>
+                        )}
+                    </div>
+
+                    {account && (
+                        <div className="mb-6 flex justify-between items-center">
+                            <div>
+                                <Badge variant={userReputation.successful / userReputation.total > 0.8 ? "success" : "warning"}>
+                                    Reputation: {userReputation.successful} / {userReputation.total}
+                                </Badge>
+                                {isAdmin && <Badge variant="secondary" className="ml-2">Admin</Badge>}
                             </div>
+                            <Button
+                                variant="outline"
+                                onClick={refreshMarketplace}
+                                className="flex items-center"
+                            >
+                                <Loader2 className="mr-2 h-4 w-4" /> Refresh
+                            </Button>
                         </div>
-                    </div>
-                )}
-                
-                {/* Minting Section */}
-                {account && (
-                    <div className="mt-8 p-4 bg-gray-50 rounded">
-                        <h2 className="text-2xl font-semibold mb-4">Mint Tokens</h2>
-                        <input
-                            type="number"
-                            placeholder="Amount to mint"
-                            value={mintAmount}
-                            onChange={(e) => setMintAmount(e.target.value)}
-                            className="w-full p-2 border border-gray-300 rounded mb-4"
-                        />
-                        <button
-                            className="w-full px-6 py-2 bg-green-600 text-white rounded-lg transition duration-200 hover:bg-green-700"
-                            onClick={handleMintTokens}
-                        >
-                            Mint Tokens
-                        </button>
-                    </div>
-                )}
-            </div>
+                    )}
+
+                    {loading ? (
+                        <div className="flex justify-center items-center h-64">
+                            <Loader2 className="h-8 w-8 animate-spin" />
+                        </div>
+                    ) : (
+                        <Tabs defaultValue="orderbook">
+                            <TabsList className="grid w-full grid-cols-2 mb-6">
+                                <TabsTrigger value="orderbook">Order Book</TabsTrigger>
+                                <TabsTrigger value="createorder">Create Order</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="orderbook">
+                                <div className="grid grid-cols-2 gap-6">
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle>Buy Orders</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <ul className="space-y-2 max-h-80 overflow-y-auto">
+                                                {orders.buy.map((order) => (
+                                                    <li key={order.id} className="p-3 bg-green-50 rounded-lg flex justify-between items-center">
+                                                        <span>{order.amount} CCT @ {order.price} ETH</span>
+                                                        {order.trader === account && (
+                                                            <Button
+                                                                variant="destructive"
+                                                                size="sm"
+                                                                onClick={() => handleCancelOrder(order.id)}
+                                                            >
+                                                                Cancel
+                                                            </Button>
+                                                        )}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </CardContent>
+                                    </Card>
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle>Sell Orders</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <ul className="space-y-2 max-h-80 overflow-y-auto">
+                                                {orders.sell.map((order) => (
+                                                    <li key={order.id} className="p-3 bg-red-50 rounded-lg flex justify-between items-center">
+                                                        <span>{order.amount} CCT @ {order.price} ETH</span>
+                                                        {order.trader === account && (
+                                                            <Button
+                                                                variant="destructive"
+                                                                size="sm"
+                                                                onClick={() => handleCancelOrder(order.id)}
+                                                            >
+                                                                Cancel
+                                                            </Button>
+                                                        )}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            </TabsContent>
+                            <TabsContent value="createorder">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Create New Order</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="space-y-4">
+                                            <Select value={orderType} onValueChange={(value) => setOrderType(value)}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select order type" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="buy">Buy</SelectItem>
+                                                    <SelectItem value="sell">Sell</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <Input
+                                                type="number"
+                                                placeholder="Amount of CCT"
+                                                value={amountToList}
+                                                onChange={(e) => setAmountToList(e.target.value)}
+                                            />
+                                            <Input
+                                                type="number"
+                                                placeholder="Price per token (ETH)"
+                                                value={pricePerToken}
+                                                onChange={(e) => setPricePerToken(e.target.value)}
+                                            />
+                                            <Button
+                                                className="w-full"
+                                                onClick={handleCreateOrder}
+                                            >
+                                                Create {orderType} Order
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+                        </Tabs>
+                    )}
+                    
+                    {account && isAdmin && (
+                        <Card className="mt-8">
+                            <CardHeader>
+                                <CardTitle>Mint Tokens (Admin Only)</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="flex space-x-4">
+                                    <Input
+                                        type="number"
+                                        placeholder="Amount to mint"
+                                        value={mintAmount}
+                                        onChange={(e) => setMintAmount(e.target.value)}
+                                        className="flex-grow"
+                                    />
+                                    <Button
+                                        onClick={handleMintTokens}
+                                    >
+                                        Mint Tokens
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+                </CardContent>
+            </Card>
         </div>
     );
 };
