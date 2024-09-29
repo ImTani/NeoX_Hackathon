@@ -1,10 +1,10 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
-    "C:\\Users\\tanis\\OneDrive\\Desktop\\My_Programs\\Web3\\NeoX_Hackathon\\carbon-credit-marketplace\\contracts\\CarbonCreditToken.sol": {
-      "lastModificationDate": 1727434989010,
-      "contentHash": "9992a81d3d0a58ef91792c266361f647",
-      "sourceName": "contracts/CarbonCreditToken.sol",
+    "/home/vedmohan/Desktop/NeoX_Hackathon/carbon-credit-marketplace/contracts/BridgeN3.sol": {
+      "lastModificationDate": 1727579442664,
+      "contentHash": "ca01beb52688780edfd1cc92aa07e3b7",
+      "sourceName": "contracts/BridgeN3.sol",
       "solcConfig": {
         "version": "0.8.27",
         "settings": {
@@ -30,17 +30,91 @@
         }
       },
       "imports": [
-        "@openzeppelin/contracts/token/ERC20/ERC20.sol"
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol"
       ],
       "versionPragmas": [
-        "^0.8.0"
+        "^0.8.27"
       ],
       "artifacts": [
-        "CarbonCreditToken"
+        "BridgeN3"
       ]
     },
-    "C:\\Users\\tanis\\OneDrive\\Desktop\\My_Programs\\Web3\\NeoX_Hackathon\\carbon-credit-marketplace\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\ERC20.sol": {
-      "lastModificationDate": 1727438243193,
+    "/home/vedmohan/Desktop/NeoX_Hackathon/carbon-credit-marketplace/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol": {
+      "lastModificationDate": 1727577950904,
+      "contentHash": "5517c8678c18eb1a8ba58810e7ca39ca",
+      "sourceName": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+      "solcConfig": {
+        "version": "0.8.27",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC20"
+      ]
+    },
+    "/home/vedmohan/Desktop/NeoX_Hackathon/carbon-credit-marketplace/node_modules/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol": {
+      "lastModificationDate": 1727577950906,
+      "contentHash": "4c02fa6f7ae7b6c289cef80424f0c875",
+      "sourceName": "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol",
+      "solcConfig": {
+        "version": "0.8.27",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../IERC20.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC20Metadata"
+      ]
+    },
+    "/home/vedmohan/Desktop/NeoX_Hackathon/carbon-credit-marketplace/node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol": {
+      "lastModificationDate": 1727577950797,
       "contentHash": "c6375ef25e84c90b3d15f9ec4eef218f",
       "sourceName": "@openzeppelin/contracts/token/ERC20/ERC20.sol",
       "solcConfig": {
@@ -80,10 +154,10 @@
         "ERC20"
       ]
     },
-    "C:\\Users\\tanis\\OneDrive\\Desktop\\My_Programs\\Web3\\NeoX_Hackathon\\carbon-credit-marketplace\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\extensions\\IERC20Metadata.sol": {
-      "lastModificationDate": 1727438243277,
-      "contentHash": "4c02fa6f7ae7b6c289cef80424f0c875",
-      "sourceName": "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol",
+    "/home/vedmohan/Desktop/NeoX_Hackathon/carbon-credit-marketplace/node_modules/@openzeppelin/contracts/utils/Context.sol": {
+      "lastModificationDate": 1727577950706,
+      "contentHash": "67bfbc07588eb8683b3fd8f6f909563e",
+      "sourceName": "@openzeppelin/contracts/utils/Context.sol",
       "solcConfig": {
         "version": "0.8.27",
         "settings": {
@@ -108,18 +182,16 @@
           }
         }
       },
-      "imports": [
-        "../IERC20.sol"
-      ],
+      "imports": [],
       "versionPragmas": [
         "^0.8.20"
       ],
       "artifacts": [
-        "IERC20Metadata"
+        "Context"
       ]
     },
-    "C:\\Users\\tanis\\OneDrive\\Desktop\\My_Programs\\Web3\\NeoX_Hackathon\\carbon-credit-marketplace\\node_modules\\@openzeppelin\\contracts\\interfaces\\draft-IERC6093.sol": {
-      "lastModificationDate": 1727438243177,
+    "/home/vedmohan/Desktop/NeoX_Hackathon/carbon-credit-marketplace/node_modules/@openzeppelin/contracts/interfaces/draft-IERC6093.sol": {
+      "lastModificationDate": 1727577950718,
       "contentHash": "4aefc698f77ecbace7f401257dfe182d",
       "sourceName": "@openzeppelin/contracts/interfaces/draft-IERC6093.sol",
       "solcConfig": {
@@ -156,10 +228,10 @@
         "IERC721Errors"
       ]
     },
-    "C:\\Users\\tanis\\OneDrive\\Desktop\\My_Programs\\Web3\\NeoX_Hackathon\\carbon-credit-marketplace\\node_modules\\@openzeppelin\\contracts\\utils\\Context.sol": {
-      "lastModificationDate": 1727438243173,
-      "contentHash": "67bfbc07588eb8683b3fd8f6f909563e",
-      "sourceName": "@openzeppelin/contracts/utils/Context.sol",
+    "/home/vedmohan/Desktop/NeoX_Hackathon/carbon-credit-marketplace/contracts/CarbonCreditToken.sol": {
+      "lastModificationDate": 1727556713019,
+      "contentHash": "efc469b8cc4a9fdd99308391fe006a3e",
+      "sourceName": "contracts/CarbonCreditToken.sol",
       "solcConfig": {
         "version": "0.8.27",
         "settings": {
@@ -184,53 +256,19 @@
           }
         }
       },
-      "imports": [],
+      "imports": [
+        "@openzeppelin/contracts/token/ERC20/ERC20.sol"
+      ],
       "versionPragmas": [
-        "^0.8.20"
+        "^0.8.0"
       ],
       "artifacts": [
-        "Context"
+        "CarbonCreditToken"
       ]
     },
-    "C:\\Users\\tanis\\OneDrive\\Desktop\\My_Programs\\Web3\\NeoX_Hackathon\\carbon-credit-marketplace\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\IERC20.sol": {
-      "lastModificationDate": 1727438243275,
-      "contentHash": "5517c8678c18eb1a8ba58810e7ca39ca",
-      "sourceName": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-      "solcConfig": {
-        "version": "0.8.27",
-        "settings": {
-          "evmVersion": "paris",
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "IERC20"
-      ]
-    },
-    "C:\\Users\\tanis\\OneDrive\\Desktop\\My_Programs\\Web3\\NeoX_Hackathon\\carbon-credit-marketplace\\contracts\\Governance.sol": {
-      "lastModificationDate": 1727435015186,
-      "contentHash": "61c67c17a38ad99fda5b64e6b40c8118",
+    "/home/vedmohan/Desktop/NeoX_Hackathon/carbon-credit-marketplace/contracts/Governance.sol": {
+      "lastModificationDate": 1727556713019,
+      "contentHash": "afb0d068e31c751845b246b3f17da3c7",
       "sourceName": "contracts/Governance.sol",
       "solcConfig": {
         "version": "0.8.27",
@@ -266,9 +304,9 @@
         "Governance"
       ]
     },
-    "C:\\Users\\tanis\\OneDrive\\Desktop\\My_Programs\\Web3\\NeoX_Hackathon\\carbon-credit-marketplace\\contracts\\CarbonMarketplace.sol": {
-      "lastModificationDate": 1727540142239,
-      "contentHash": "dde5f10f05d87f2348b5ec470afd223b",
+    "/home/vedmohan/Desktop/NeoX_Hackathon/carbon-credit-marketplace/contracts/CarbonMarketplace.sol": {
+      "lastModificationDate": 1727556713019,
+      "contentHash": "eba5f300e0bdae508a240bc4c494428b",
       "sourceName": "contracts/CarbonMarketplace.sol",
       "solcConfig": {
         "version": "0.8.27",
@@ -304,9 +342,47 @@
         "CarbonMarketplace"
       ]
     },
-    "C:\\Users\\tanis\\OneDrive\\Desktop\\My_Programs\\Web3\\NeoX_Hackathon\\carbon-credit-marketplace\\contracts\\Lock.sol": {
-      "lastModificationDate": 1727434896890,
-      "contentHash": "101c00cb43bd6d4be9704e08c973d5ad",
+    "/home/vedmohan/Desktop/NeoX_Hackathon/carbon-credit-marketplace/contracts/BridgeX.sol": {
+      "lastModificationDate": 1727579458497,
+      "contentHash": "2b6d5f90e6fe93c83abbdd559aae9c44",
+      "sourceName": "contracts/BridgeX.sol",
+      "solcConfig": {
+        "version": "0.8.27",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC20/ERC20.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.27"
+      ],
+      "artifacts": [
+        "BridgeX"
+      ]
+    },
+    "/home/vedmohan/Desktop/NeoX_Hackathon/carbon-credit-marketplace/contracts/Lock.sol": {
+      "lastModificationDate": 1727577426615,
+      "contentHash": "275e3545c54ee41582b3f5f685f0e7f7",
       "sourceName": "contracts/Lock.sol",
       "solcConfig": {
         "version": "0.8.27",
