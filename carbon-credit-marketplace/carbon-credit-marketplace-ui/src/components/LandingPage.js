@@ -84,7 +84,7 @@ return (
             </div>
             <div className="relative h-[300px] sm:h-[400px] rounded-xl overflow-hidden">
                 <img
-                src="/placeholder.svg"
+                src="https://images.unsplash.com/photo-1547586696-ea22b4d4235d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80"
                 alt="Sustainable Future"
                 className="h-full w-full object-cover rounded-xl"
                 />
